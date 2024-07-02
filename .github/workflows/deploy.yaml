@@ -38,9 +38,9 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: frontend
-          environment_name: Frontend-env
-          existing_bucket_name: elasticbeanstalk-eu-north-1-339713096595
-          region: eu-north-1
+          application_name: aditya
+          environment_name: Aditya-env
+          existing_bucket_name: elasticbeanstalk-ap-south-1-339713096595
+          region: ap-south-1
           version_label: ${{ github.sha }}
           deployment_package: deploy.zip
