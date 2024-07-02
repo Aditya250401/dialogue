@@ -1,11 +1,7 @@
 services:
   web:
-    image: next-nginx:dev
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:80"
-    volumes:
-      - /app/node_modules
-      - .:/app
+      - '80:80'
