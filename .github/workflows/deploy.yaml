@@ -30,17 +30,29 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/trial:latest
 
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
-
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v22
+      - name: Deploy to EC2 instance
+        uses: appleboy/ssh-action@master
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
-          application_name: nextjs
-          environment_name: Nextjs-env
-          existing_bucket_name: elasticbeanstalk-eu-north-1-339713096595
-          region: eu-north-1
-          version_label: ${{ github.sha }}
-          deployment_package: deploy.zip
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/trial:latest
+            docker stop trial || true
+            docker rm trial || true
+            docker run -d -p 80:80 --name trial ${{ secrets.DOCKER_USERNAME }}/trial:latest
+
+      # - name: Generate deployment package
+      #   run: zip -r deploy.zip . -x '*.git*'
+
+      # - name: Deploy to EB
+      #   uses: einaregilsson/beanstalk-deploy@v22
+      #   with:
+      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY }}
+      #     aws_secret_key: ${{ secrets.AWS_SECRET_KEY }}
+      #     application_name: nextjs
+      #     environment_name: Nextjs-env
+      #     existing_bucket_name: elasticbeanstalk-eu-north-1-339713096595
+      #     region: eu-north-1
+      #     version_label: ${{ github.sha }}
+      #     deployment_package: deploy.zip
