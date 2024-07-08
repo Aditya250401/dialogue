@@ -8,19 +8,53 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - run: docker build -t aditya250401/react-test -f ./client/Dockerfile.dev ./client
-      - run: docker run -e CI=true aditya250401/react-test npm test
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - run: docker build -t aditya250401/multi-client ./client
-      - run: docker build -t aditya250401/multi-nginx ./nginx
-      - run: docker build -t aditya250401/multi-server ./server
-      - run: docker build -t aditya250401/multi-worker ./worker
+      - name: install the gcloud CLI
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-      - run: docker push aditya250401/multi-client
-      - run: docker push aditya250401/multi-nginx
-      - run: docker push aditya250401/multi-server
-      - run: docker push aditya250401/multi-worker
+      - name: build and push docker images
+        env:
+          GOOGLE_PROJECT: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          gcloud auth configure-docker asia-south2-docker.pkg.dev
+          docker build -t asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/client:latest -f ./client/Dockerfile ./client
+          docker build -t asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/api:latest -f ./server/Dockerfile ./server
+          docker build -t asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/worker:latest -f ./worker/Dockerfile ./worker
+          docker build -t asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/nginx:latest -f ./nginx/Dockerfile ./nginx
+          docker push asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/client:latest
+          docker push asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/api:latest
+          docker push asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/worker:latest
+          docker push asia-south2-docker.pkg.dev/stately-forest-427607-k1/multi-container-docker/nginx:latest
+
+# name: Deploy MultiDocker
+# on:
+#   push:
+#     branches:
+#       - main # check your repo, your default branch might be master!
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+#       - run: docker build -t aditya250401/react-test -f ./client/Dockerfile.dev ./client
+#       - run: docker run -e CI=true aditya250401/react-test npm test
+
+#       - run: docker build -t aditya250401/multi-client ./client
+#       - run: docker build -t aditya250401/multi-nginx ./nginx
+#       - run: docker build -t aditya250401/multi-server ./server
+#       - run: docker build -t aditya250401/multi-worker ./worker
+
+#       - run: docker push aditya250401/multi-client
+#       - run: docker push aditya250401/multi-nginx
+#       - run: docker push aditya250401/multi-server
+#       - run: docker push aditya250401/multi-worker
 
 
